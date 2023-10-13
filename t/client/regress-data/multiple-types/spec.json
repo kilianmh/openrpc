@@ -1,5 +1,53 @@
 {
-  "methods": [
+    "methods": [
+         {
+      "name": "cccample",
+      "params": [
+        {
+          "name": "name",
+          "schema":
+          {
+            "type": ["string", "null"],
+            "maxLength": 255
+          },
+          "required": true,
+          "summary": "User name."
+        }
+      ],
+      "result": {
+        "name": "example_result",
+        "schema": {
+          "type": ["string", "null"],
+          "maxLength": 255
+        }
+      }, 
+      "summary": "Example method.",
+      "paramStructure": "by-name"
+            },
+            {
+      "name": "xxxxample",
+      "params": [
+        {
+          "name": "name",
+          "schema":
+          {
+            "type": ["string", "null"],
+            "maxLength": 255
+          },
+          "required": true,
+          "summary": "User name."
+        }
+      ],
+      "result": {
+        "name": "example_result",
+        "schema": {
+          "type": ["string", "null"],
+          "maxLength": 255
+        }
+      }, 
+      "summary": "Example method.",
+      "paramStructure": "by-name"
+            },
     {
       "name": "example",
       "params": [

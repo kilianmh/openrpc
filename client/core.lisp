@@ -33,7 +33,37 @@
       `(format stream "- ~S~%"
                ',(cons name
                        lambda-list))))
-
+#|
+  (defun generate-method-descriptions (class)
+    (flet ((proper-lambda-list (method)
+             (let* ((lambda-list (closer-mop:method-lambda-list method))
+                    (specializers (closer-mop:method-specializers method))
+                    (list-element -1)
+                    (method-name (intern (symbol-name (moptilities:method-name method))))
+                    (lambda-list-parameters
+                      (mapcar (lambda (element)
+                                (let ((type
+                                        (nth (incf list-element) specializers)))
+                                  (if type
+                                      (list (intern (symbol-name element))
+                                            (intern (symbol-name (class-name type))))
+                                      (typecase element
+                                        (symbol
+                                         (intern (symbol-name element)))
+                                        (cons
+                                         (mapcar (lambda (item)
+                                                   (intern (symbol-name item)))
+                                                 element))))))
+                              (cdr lambda-list))))
+               (unless (string-equal method-name 'describe-object)
+                 (format *standard-output* "- ~S~%"
+                         (if lambda-list-parameters
+                             (list method-name lambda-list-parameters)
+                             (list method-name)))))))
+      (mapc #'proper-lambda-list
+            (closer-mop:specializer-direct-methods (find-class class)))
+      nil))
+|#
   
   (defun generate-client-class (class-name spec &key export-symbols)
     (let* ((make-func-name (alexandria:symbolicate "MAKE-" class-name))
@@ -69,6 +99,10 @@
                      ((string-equal type "number") (push 'double-float type-list))
                      ((string-equal type "string") (push 'string type-list))
                      ((string-equal type "array") (push 'list type-list))
+                     ((string-equal type "object") (push 'hash-table type-list))
+                     ((string-equal type "boolean")
+                      (pushnew 'null type-list)
+                      (push '(eql t) type-list))
                      ((string-equal type "null") (push 'null type-list))
                      (t
                       (error "Type ~S is not supported yet."
@@ -306,7 +340,8 @@
                                       prop-schema
                                       classes-cache
                                       :export-symbols export-symbols)))))
-        ((and (stringp type)
+        ((and (gethash "items" schema)
+              (stringp type)
               (string-equal type "array"))
          (let ((element-transformation
                  (generate-result-transformation api-class-name
