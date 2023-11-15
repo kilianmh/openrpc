@@ -91,12 +91,12 @@ The list is ordered alphabetically and excludes the describe-object method."
      (to-lisp-case
       (str:replace-all "." "-" string))))
 
-  (declaim (ftype (function (hash-table) cons) schema-to-type))
+  (declaim (ftype (function (hash-table) list) schema-to-type))
   (defun schema-to-type (schema)
     "Convert JSON types to CL types. Supports one or multiple types."
     (let ((type (gethash "type" schema))
           (type-list nil))
-      (declare (type (or string cons) type)
+      (declare (type (or string list) type)
                (list type-list))
       (flet ((%schema-to-type (type)
                (cond ((string-equal type "integer") (push 'integer type-list))
@@ -113,9 +113,10 @@ The list is ordered alphabetically and excludes the describe-object method."
                      (t
                       (error "Type ~S is not supported yet."
                              type)))))
-        (if (stringp type)
-            (%schema-to-type type)
-            (mapc #'%schema-to-type type)))
+        (etypecase type
+	  (string (%schema-to-type type))
+	  (cons   (mapc #'%schema-to-type type))
+	  (null   nil)))
       (nreverse type-list)))
 
   (defun generate-generic-lambda-list (params)
@@ -152,12 +153,14 @@ The list is ordered alphabetically and excludes the describe-object method."
                 (let ((name (car elements))
                       (types (cdr elements)))
                   (declare (symbol name) (list types))
-                  (if (= 1 (length types))
-                      (setf lambda-lists (add-to-lists elements lambda-lists))
-                      (setf lambda-lists
-                            (mapcan (lambda (type)
-                                      (add-to-lists (list name type) lambda-lists))
-                                    types)))))
+                  (case (length types)
+		    (0 (setf lambda-lists (add-to-lists (car elements) lambda-lists)))
+		    (1 (setf lambda-lists (add-to-lists elements lambda-lists)))
+		    (otherwise
+		     (setf lambda-lists
+			   (mapcan (lambda (type)
+				     (add-to-lists (list name type) lambda-lists))
+				   types))))))
               lambda-list))
       lambda-lists))
 
