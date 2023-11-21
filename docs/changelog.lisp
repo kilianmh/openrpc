@@ -13,6 +13,12 @@
                               "JSON"
                               "RPC"
                               "OSX"))
+    (0.10.2 2023-10-21
+	    "
+## Fix
+
+Add necessary helpers for simple example.
+")
     (0.10.1 2023-10-17
 	    "
 ## Additions
